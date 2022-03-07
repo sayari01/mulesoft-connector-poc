@@ -37,9 +37,10 @@ public class MulesoftConnectorServiceImpl implements MulesoftConnectorService {
 	public String getApiDetails(MulesoftConnectorRequest request) throws Exception {
 		ResponseEntity<String> samlResponse = getSamlResponse(request);
 		if (samlResponse.getStatusCode().equals(HttpStatus.OK)) {
+
 			String saml = mulesoftConnectorUtil.extractSaml(samlResponse);
 			String authToken = getToken(saml);
-			String apiDetails = getHtml(request, authToken);
+			String apiDetails = getApiDetails(request, authToken);
 			return apiDetails;
 		}
 		return "Unsuccessfull Request!!";
@@ -91,38 +92,17 @@ public class MulesoftConnectorServiceImpl implements MulesoftConnectorService {
 
 	}
 
-	/*
-	 * private String getApiDetails(MulesoftConnectorRequest request, String token)
-	 * throws Exception { String uri = "http://localhost:8081/link3/" +
-	 * request.getGroupId() + "/" + request.getApiId() + "/" +
-	 * request.getApiVersion() + "/portal"; HttpHeaders headers = new HttpHeaders();
-	 * headers.add("Authorization", "bearer " + token); HttpEntity<Void>
-	 * requestEntity = new HttpEntity<>(headers); File file = new
-	 * File("C://Users/sayadhik/Documents/download.yaml"); try {
-	 * ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET,
-	 * requestEntity, String.class); mulesoftConnectorUtil.downloadFile(response,
-	 * file); return response.getBody();
-	 * 
-	 * } catch (Exception e) { throw new
-	 * Exception("Error while fetching Api Details:" + e.getMessage());
-	 * 
-	 * }
-	 * 
-	 * }
-	 */
-	
-	private String getHtml(MulesoftConnectorRequest request, String token) throws Exception {
-		String uri = "https://www.w3schools.com/html/"; 
+	private String getApiDetails(MulesoftConnectorRequest request, String token) throws Exception {
+		String uri = "http://localhost:8081/link3/" + request.getGroupId() + "/" + request.getApiId() + "/"
+				+ request.getApiVersion() + "/portal";
 		HttpHeaders headers = new HttpHeaders();
-//		headers.add("Authorization", "bearer " + token);
+		headers.add("Authorization", "bearer " + token);
 		HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 		File file = new File("C://Users/sayadhik/Documents/download.yaml");
 		try {
 			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, requestEntity, String.class);
 			mulesoftConnectorUtil.downloadFile(response, file);
-			System.out.println(response.getBody());
 			return response.getBody();
-			
 
 		} catch (Exception e) {
 			throw new Exception("Error while fetching Api Details:" + e.getMessage());
