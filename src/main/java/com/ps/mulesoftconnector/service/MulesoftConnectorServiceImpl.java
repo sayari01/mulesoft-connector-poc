@@ -3,6 +3,10 @@ package com.ps.mulesoftconnector.service;
 import java.io.File;
 import java.util.Arrays;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -37,7 +41,6 @@ public class MulesoftConnectorServiceImpl implements MulesoftConnectorService {
 	public String getApiDetails(MulesoftConnectorRequest request) throws Exception {
 		ResponseEntity<String> samlResponse = getSamlResponse(request);
 		if (samlResponse.getStatusCode().equals(HttpStatus.OK)) {
-
 			String saml = mulesoftConnectorUtil.extractSaml(samlResponse);
 			String authToken = getToken(saml);
 			String apiDetails = getApiDetails(request, authToken);
