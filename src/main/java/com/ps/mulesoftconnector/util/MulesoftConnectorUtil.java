@@ -4,11 +4,19 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+
+import com.ps.mulesoftconnector.model.CageResponse;
+import com.ps.mulesoftconnector.model.Details;
+import com.ps.mulesoftconnector.model.Message;
+import com.ps.mulesoftconnector.model.Report;
+import com.ps.mulesoftconnector.model.Reports;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,4 +51,31 @@ public class MulesoftConnectorUtil {
 		}
 	}
 
+	public String checkCriteriaForResponseCode(CageResponse request, String ruleName) throws Exception {
+		List<String> respList = new ArrayList<>();
+		Report report = request.getReport();
+		List<Reports> reportsList = report.getReports();
+		for (Reports reports : reportsList) {
+			Details details = reports.getDetails();
+			List<Message> messageList = details.getMessages();
+			for (Message message : messageList) {
+				String code = message.getCode();
+				if (code.equals(ruleName)) {
+
+					respList.add(message.getSeverity());
+				}
+			}
+
+		}
+		if (respList.contains("Error")) {
+			return "Fail";
+		}
+		if (respList.contains("warn")) {
+			return "Warn";
+		}
+		if (!respList.contains("Error") && !respList.contains("warn")) {
+			return "Pass";
+		}
+		return null;
+	}
 }
