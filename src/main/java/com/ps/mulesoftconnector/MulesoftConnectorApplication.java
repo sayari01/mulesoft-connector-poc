@@ -12,9 +12,4 @@ public class MulesoftConnectorApplication {
 		SpringApplication.run(MulesoftConnectorApplication.class, args);
 	}
 	
-	@Bean
-	public RestTemplate restTemplate() {
-		RestTemplate restTemplate = new RestTemplate();
-		return restTemplate;
-	}
 }

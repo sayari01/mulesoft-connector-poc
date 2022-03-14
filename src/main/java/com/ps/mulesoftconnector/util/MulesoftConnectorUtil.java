@@ -9,7 +9,6 @@ import java.util.List;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import com.ps.mulesoftconnector.model.CageResponse;
@@ -24,17 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MulesoftConnectorUtil {
 
-	public String extractSaml(ResponseEntity<String> samlResponse) {
-		Document document = Jsoup.parse(samlResponse.getBody());
-		String resp = document.getElementsByTag("input").get(0).val();
-		System.out.println("Saml Response: " + resp);
-		return resp;
-	}
-
-	public void downloadFile(ResponseEntity<String> response, File file) {
+	
+	public void downloadFile(String response, File file) {
 		try {
-
-			String resp = response.getBody();
 			// if file doesnt exists, then create it
 			if (!file.exists()) {
 				file.createNewFile();
@@ -42,16 +33,24 @@ public class MulesoftConnectorUtil {
 
 			FileWriter fw = new FileWriter(file.getAbsoluteFile());
 			BufferedWriter bw = new BufferedWriter(fw);
-			bw.write(resp);
+			bw.write(response);
 			bw.close();
-			// System.out.println("Done writing to " + fileName); //For testing
+			log.info("Done writing to " + file);
 		} catch (IOException e) {
 			System.out.println("Error: " + e);
 			e.printStackTrace();
 		}
 	}
 
+	public String extractSaml(String samlResponse) {
+		Document document = Jsoup.parse(samlResponse);
+		String resp = document.getElementsByTag("input").get(0).val();
+		System.out.println("Saml Response: " + resp);
+		return resp;
+	}
+
 	public String checkCriteriaForResponseCode(CageResponse request, String ruleName) throws Exception {
+		log.info("This {} rule is mapped with criteria: ", ruleName);
 		List<String> respList = new ArrayList<>();
 		Report report = request.getReport();
 		List<Reports> reportsList = report.getReports();
@@ -78,4 +77,5 @@ public class MulesoftConnectorUtil {
 		}
 		return null;
 	}
+	
 }
