@@ -58,7 +58,7 @@ public class MulesoftConnectorServiceImplWebclient implements MulesoftConnectorS
 		log.info("The uri to be called {}", builder.toUriString());
 		MultiValueMap<String, String> requestMap = new LinkedMultiValueMap<>();
 		requestMap.add("AuthMethod", request.getAuthMethod());
-		requestMap.add("UserName", request.getUsername());
+		requestMap.add("UserName", request.getDomain() + "\\" +request.getUsername());
 		requestMap.add("Password", request.getPassword());
 		WebClient client = WebClient.create();
 		String response = client.post().uri(builder.toUriString()).header("Referer", refererLink)
@@ -96,7 +96,7 @@ public class MulesoftConnectorServiceImplWebclient implements MulesoftConnectorS
 				.bodyToMono(String.class).block();
 		File file = new File("C://Users/sayadhik/Documents/download.yaml");
 		mulesoftConnectorUtil.downloadFile(response, file);
-		return null;
+		return response;
 	}
 
 }

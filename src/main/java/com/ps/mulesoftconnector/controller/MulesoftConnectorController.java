@@ -23,6 +23,8 @@ public class MulesoftConnectorController {
 	private ResponseEntity<String> getApiDetailsResponse(@RequestBody MulesoftConnectorRequest request)
 			throws Exception {
 		log.info("Entering controller..");
+		System.setProperty("http_proxy", "http://"+request.getUsername()+":"+request.getPassword()+"link");
+		System.setProperty("https_proxy", "http://"+request.getUsername()+":"+request.getPassword()+"link");
 		String apiDetails = mulesoftConnectorService.getApiDetails(request);
 		return new ResponseEntity<String>(apiDetails, HttpStatus.OK);
 
