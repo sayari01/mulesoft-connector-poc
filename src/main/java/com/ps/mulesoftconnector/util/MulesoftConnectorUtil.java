@@ -9,11 +9,13 @@ import java.util.List;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.ps.mulesoftconnector.model.CageResponse;
 import com.ps.mulesoftconnector.model.Details;
 import com.ps.mulesoftconnector.model.Message;
+import com.ps.mulesoftconnector.model.MessageResponse;
 import com.ps.mulesoftconnector.model.Report;
 import com.ps.mulesoftconnector.model.Reports;
 
@@ -23,7 +25,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MulesoftConnectorUtil {
 
-	
+	@Value("${mulesoft.ruleName}")
+	private String criteria;
+
 	public void downloadFile(String response, File file) {
 		try {
 			// if file doesnt exists, then create it
@@ -50,8 +54,9 @@ public class MulesoftConnectorUtil {
 	}
 
 	public String checkCriteriaForResponseCode(CageResponse request, String ruleName) throws Exception {
-		log.info("This {} rule is mapped with criteria: ", ruleName);
-		List<String> respList = new ArrayList<>();
+		log.info("This {} rule is mapped with criteria: {}", ruleName, criteria);
+		List<String> respList1 = new ArrayList<>();
+		List<MessageResponse> respList = new ArrayList<>();
 		Report report = request.getReport();
 		List<Reports> reportsList = report.getReports();
 		for (Reports reports : reportsList) {
@@ -60,22 +65,43 @@ public class MulesoftConnectorUtil {
 			for (Message message : messageList) {
 				String code = message.getCode();
 				if (code.equals(ruleName)) {
-
-					respList.add(message.getSeverity());
+					MessageResponse messageResponse = new MessageResponse();
+					messageResponse.setSeverity(message.getSeverity());
+					messageResponse.setDescription(message.getMessage());
+					respList.add(messageResponse);
+					respList1.add(message.getSeverity());
 				}
 			}
 
 		}
-		if (respList.contains("Error")) {
+
+		if (respList1.contains("Error")) {
+			for (MessageResponse messageResponse : respList) {
+				if (messageResponse.getSeverity().equals("Error")) {
+					log.info("Description: " + messageResponse.getDescription());
+				}
+			}
 			return "Fail";
 		}
-		if (respList.contains("warn")) {
+
+		if (respList1.contains("warn")) {
+			for (MessageResponse messageResponse : respList) {
+				if (messageResponse.getSeverity().equals("warn")) {
+					log.info("Description: " + messageResponse.getDescription());
+				}
+			}
 			return "Warn";
 		}
-		if (!respList.contains("Error") && !respList.contains("warn")) {
+
+		if (!respList1.contains("Error") && !respList1.contains("warn")) {
+			for (MessageResponse messageResponse : respList) {
+				if (messageResponse.getSeverity().equals("info")) {
+					log.info("Description: " + messageResponse.getDescription());
+				}
+			}
 			return "Pass";
 		}
 		return null;
 	}
-	
+
 }
