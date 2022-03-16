@@ -58,7 +58,7 @@ public class MulesoftConnectorServiceImplWebclient implements MulesoftConnectorS
 		log.info("The uri to be called {}", builder.toUriString());
 		MultiValueMap<String, String> requestMap = new LinkedMultiValueMap<>();
 		requestMap.add("AuthMethod", request.getAuthMethod());
-		requestMap.add("UserName", request.getDomain() + "\\" +request.getUsername());
+		requestMap.add("UserName", request.getUsername() + "@" + request.getDomain());
 		requestMap.add("Password", request.getPassword());
 		WebClient client = WebClient.create();
 		String response = client.post().uri(builder.toUriString()).header("Referer", refererLink)
