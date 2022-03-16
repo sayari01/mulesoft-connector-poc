@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -21,6 +22,8 @@ import com.ps.mulesoftconnector.util.MulesoftConnectorUtil;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.transport.ProxyProvider;
 
 @Slf4j
 @Service
@@ -43,6 +46,9 @@ public class MulesoftConnectorServiceImplWebclient implements MulesoftConnectorS
 	
 	@Value("${mulesoft.referer}")
 	private String refererLink;
+	
+	@Value("${mulesoft.proxyLink}")
+	private String demoProxyLink;
 
 	@Override
 	public String getApiDetails(MulesoftConnectorRequest request) throws Exception {
@@ -60,7 +66,12 @@ public class MulesoftConnectorServiceImplWebclient implements MulesoftConnectorS
 		requestMap.add("AuthMethod", request.getAuthMethod());
 		requestMap.add("UserName", request.getUsername() + "@" + request.getDomain());
 		requestMap.add("Password", request.getPassword());
-		WebClient client = WebClient.create();
+		String proxyLink = "http://" + request.getUsername() + ":" + request.getPassword() + demoProxyLink;
+		HttpClient httpClient =
+		            HttpClient.create()
+		                    .proxy(proxy -> proxy.type(ProxyProvider.Proxy.HTTP).host(proxyLink).port(80));
+		ReactorClientHttpConnector connector = new ReactorClientHttpConnector(httpClient);
+		WebClient client =  WebClient.builder().clientConnector(connector).build();
 		String response = client.post().uri(builder.toUriString()).header("Referer", refererLink)
 				.contentType(MediaType.APPLICATION_FORM_URLENCODED).accept(MediaType.APPLICATION_JSON)
 				.body(BodyInserters.fromFormData(requestMap)).retrieve()
@@ -74,8 +85,10 @@ public class MulesoftConnectorServiceImplWebclient implements MulesoftConnectorS
 	private String getToken(String saml) {
 		AuthenticationRequest authenticationRequest = new AuthenticationRequest();
 		authenticationRequest.setSaml(saml);
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(link2);
 		WebClient client = WebClient.create(link2);
-		Response response = client.post().header("X-Requested-With", "XMLHttpRequest").bodyValue(authenticationRequest)
+		
+		Response response = client.post().uri(builder.toUriString()).header("X-Requested-With", "XMLHttpRequest").bodyValue(authenticationRequest)
 				.retrieve()
 				.onStatus(HttpStatus::is4xxClientError, error -> Mono.error(new RuntimeException("API not found")))
 				.onStatus(HttpStatus::is5xxServerError,

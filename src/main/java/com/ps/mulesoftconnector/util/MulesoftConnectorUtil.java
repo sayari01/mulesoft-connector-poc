@@ -95,7 +95,7 @@ public class MulesoftConnectorUtil {
 
 		if (!respList1.contains("Error") && !respList1.contains("warn")) {
 			for (MessageResponse messageResponse : respList) {
-				if (messageResponse.getSeverity().equals("info")) {
+				if (messageResponse.getSeverity().equals("Info")) {
 					log.info("Description: " + messageResponse.getDescription());
 				}
 			}
