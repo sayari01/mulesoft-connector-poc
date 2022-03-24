@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -54,7 +55,7 @@ public class MulesoftConnectorUtil {
 	}
 
 	public String checkCriteriaForResponseCode(CageResponse request, String ruleName) throws Exception {
-		log.info("This {} rule is mapped with criteria: {}", ruleName, criteria);
+		log.info("This {} criteria is mapped with rule: {}", criteria, ruleName);
 		List<String> respList1 = new ArrayList<>();
 		List<MessageResponse> respList = new ArrayList<>();
 		Report report = request.getReport();
@@ -104,4 +105,55 @@ public class MulesoftConnectorUtil {
 		return null;
 	}
 
+	
+	public String checkCriteriaForSensitiveUriOrParams(CageResponse request, List<String> ruleNameList) throws Exception {
+	log.info("This {} criteria is mapped with rule: {}", criteria, ruleNameList.stream().collect(Collectors.toList()));
+		List<String> respList1 = new ArrayList<>();
+		List<MessageResponse> respList = new ArrayList<>();
+		Report report = request.getReport();
+		List<Reports> reportsList = report.getReports();
+		for (Reports reports : reportsList) {
+			Details details = reports.getDetails();
+			List<Message> messageList = details.getMessages();
+			for (Message message : messageList) {
+				String code = message.getCode();
+				if (ruleNameList.contains(code)) {
+					MessageResponse messageResponse = new MessageResponse();
+					messageResponse.setSeverity(message.getSeverity());
+					messageResponse.setDescription(message.getMessage());
+					respList.add(messageResponse);
+					respList1.add(message.getSeverity());
+				}
+			}
+
+		}
+
+		if (respList1.contains("Error")) {
+			for (MessageResponse messageResponse : respList) {
+				if (messageResponse.getSeverity().equals("Error")) {
+					log.info("Description: " + messageResponse.getDescription());
+				}
+			}
+			return "Fail";
+		}
+
+		if (respList1.contains("warn")) {
+			for (MessageResponse messageResponse : respList) {
+				if (messageResponse.getSeverity().equals("warn")) {
+					log.info("Description: " + messageResponse.getDescription());
+				}
+			}
+			return "Warn";
+		}
+
+		if (!respList1.contains("Error") && !respList1.contains("warn")) {
+			for (MessageResponse messageResponse : respList) {
+				if (messageResponse.getSeverity().equals("Info")) {
+					log.info("Description: " + messageResponse.getDescription());
+				}
+			}
+			return "Pass";
+		}
+		return null;
+	}
 }
